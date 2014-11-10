@@ -12,11 +12,15 @@ $ bin/svn2git
 
 ```bash
 svn2git - the Subversion to Git migration tool. version 1.0.1
+```
 
-Usage:
+**Usage**
+```bash
   [options] command [arguments]
+```
 
-Options:
+**Options:**
+```
   --help           -h Display this help message.
   --quiet          -q Do not output any message.
   --verbose        -v|vv|vvv Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
@@ -24,8 +28,10 @@ Options:
   --ansi              Force ANSI output.
   --no-ansi           Disable ANSI output.
   --no-interaction -n Do not ask any interactive question.
+```
 
-Available commands:
+**Available commands**
+```
   fetch-svn-authors   Command line tool to fetch author names from an SVN repository.
   help                Displays help for a command
   list                Lists commands
@@ -33,22 +39,26 @@ Available commands:
 ```
 
 ### Get subversion authors mapping (fetch-svn-authors command)
-```bash
-Usage:
- fetch-svn-authors [--output="..."] source
 
-Arguments:
- source                Subversion repository to fetch author names from.
+**Usage**
+```
+  bin/svn2git fetch-svn-authors [--output="..."] source
+```
+**Arguments**
+```
+  source                Subversion repository to fetch author names from.
+```
 
-Options:
- --output              Output file. (default: "./authors.txt")
- --help (-h)           Display this help message.
- --quiet (-q)          Do not output any message.
- --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
- --version (-V)        Display this application version.
- --ansi                Force ANSI output.
- --no-ansi             Disable ANSI output.
- --no-interaction (-n) Do not ask any interactive question.
+**Options**
+```
+  --output              Output file. (default: "./authors.txt")
+  --help (-h)           Display this help message.
+  --quiet (-q)          Do not output any message.
+  --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
+  --version (-V)        Display this application version.
+  --ansi                Force ANSI output.
+  --no-ansi             Disable ANSI output.
+  --no-interaction (-n) Do not ask any interactive question.
 ```
 
 **Example**
@@ -64,23 +74,28 @@ Capability to inject the layout might be added in the future.
 
 
 ### Migrate the repository (migrate command)
+
+**Usage**
 ```bash
-Usage:
- migrate [-A|--authors-file="..."] [--remote="..."] source
+  bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] source
+```
 
-Arguments:
- source                Subversion repository to migrate.
+**Arguments**
+```
+  source                Subversion repository to migrate.
+```
 
-Options:
- --authors-file (-A)   Path to Subversion authors mapping.
- --remote              URL of Git remote repository to push to.
- --help (-h)           Display this help message.
- --quiet (-q)          Do not output any message.
- --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
- --version (-V)        Display this application version.
- --ansi                Force ANSI output.
- --no-ansi             Disable ANSI output.
- --no-interaction (-n) Do not ask any interactive question.
+**Options**
+```
+  --authors-file (-A)   Path to Subversion authors mapping.
+  --remote              URL of Git remote repository to push to.
+  --help (-h)           Display this help message.
+  --quiet (-q)          Do not output any message.
+  --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
+  --version (-V)        Display this application version.
+  --ansi                Force ANSI output.
+  --no-ansi             Disable ANSI output.
+  --no-interaction (-n) Do not ask any interactive question.
 ```
 
 **Example**
