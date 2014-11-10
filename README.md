@@ -1,21 +1,16 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
-
-- [svn2git](#svn2git)
-  - [Getting Started](#getting-started)
-    - [Install Dependencies](#install-dependencies)
-    - [Get help](#get-help)
-    - [Get subversion authors mapping](#get-subversion-authors-mapping)
-    - [Migrate the repository](#migrate-the-repository)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 ## svn2git
 Subversion to Git migration tool.
 
 Uses git-svn to clone a Subversion repository including all it's tags to Git.
 Optionally pushes everything to a remote repository.
+
+**Table of Contents**
+
+- [Getting Started](#getting-started)
+  - [Install Dependencies](#install-dependencies)
+  - [Get help](#get-help)
+  - [Get subversion authors mapping](#get-subversion-authors-mapping)
+  - [Migrate the repository](#migrate-the-repository)
 
 ### Getting Started
 
