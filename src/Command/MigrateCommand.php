@@ -14,10 +14,13 @@ use Svn2Git\Cli\Cli;
 use Svn2Git\Vcs\Branch;
 use Svn2Git\Vcs\Tag;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 
 /**
  * Class Svn2GitCommand
@@ -75,6 +78,10 @@ class MigrateCommand extends Command {
      * @var Cli
      */
     private $cli;
+    /**
+     * @var QuestionHelper
+     */
+    private $question;
 
     /**
      * @inheritdoc
@@ -111,6 +118,9 @@ class MigrateCommand extends Command {
     protected function initialize(InputInterface $input, OutputInterface $output) {
         $this->input = $input;
         $this->output = $output;
+
+        /** @var $question QuestionHelper */
+        $this->question = $this->getHelper('question');
 
         $this->cwd = getcwd();
         $this->log('BASEDIR: ' . $this->cwd);
@@ -158,11 +168,20 @@ class MigrateCommand extends Command {
             $this->fetchSubversionRepository($this->gitsvn);
             $this->updateSubversionRepository($this->gitsvn);
         }
-        $branches = $this->getSubversionBranches($this->gitsvn);
-        $this->createGitBranches($branches, $this->gitsvn);
 
-        $tags = $this->getSubversionTags($this->gitsvn);
-        $this->createGitAnnotatedTags($tags, $this->gitsvn);
+        $createBranchesQ = new ConfirmationQuestion('Migrate branches? ', true);
+
+        if ($this->question->ask($input, $output, $createBranchesQ)) {
+            $branches = $this->getSubversionBranches($this->gitsvn);
+            $this->createGitBranches($branches, $this->gitsvn);
+        }
+
+        $createTagsQ = new ConfirmationQuestion('Migrate tags? ', true);
+
+        if ($this->question->ask($input, $output, $createTagsQ)) {
+            $tags = $this->getSubversionTags($this->gitsvn);
+            $this->createGitAnnotatedTags($tags, $this->gitsvn);
+        }
 
         if (isset($this->remote)) {
             $this->addGitRemote($this->remote, $this->gitsvn);
