@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Svn2Git\Command\FetchSvnAuthorsCommand;
+use Svn2Git\Command\MigrateCommand;
+use Symfony\Component\Console\Application;
+
+$application = new Application();
+
+$migrateCommand = new MigrateCommand();
+$fetchSvnAuthorsCmd = new FetchSvnAuthorsCommand();
+
+$application->add($fetchSvnAuthorsCmd);
+$application->add($migrateCommand);
+$application->run();
