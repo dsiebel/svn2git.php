@@ -1,3 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [svn2git](#svn2git)
+  - [Getting Started](#getting-started)
+    - [Install Dependencies](#install-dependencies)
+    - [Get help](#get-help)
+    - [Get subversion authors mapping](#get-subversion-authors-mapping)
+    - [Migrate the repository](#migrate-the-repository)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## svn2git
 Subversion to Git migration tool.
 
@@ -9,7 +22,7 @@ Optionally pushes everything to a remote repository.
 #### Install Dependencies
 ```composer install```
 
-#### get help
+#### Get help
 ```bash
 $ bin/svn2git
 ```
@@ -36,7 +49,7 @@ Available commands:
   migrate             Command line tool to migrate a Subversion repository to Git.
 ```
 
-### Get subversion authors mapping (fetch-svn-authors command)
+### Get subversion authors mapping
 
 **Usage**
 ```
@@ -71,7 +84,7 @@ username = username <username>
 Capability to inject the layout might be added in the future.
 
 
-### Migrate the repository (migrate command)
+### Migrate the repository
 
 **Usage**
 ```bash
