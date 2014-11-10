@@ -10,17 +10,13 @@ Optionally pushes everything to a remote repository.
 $ bin/svn2git
 ```
 
-```bash
+```
 svn2git - the Subversion to Git migration tool. version 1.0.1
-```
 
-**Usage**
-```bash
+Usage:
   [options] command [arguments]
-```
 
-**Options:**
-```
+Options:
   --help           -h Display this help message.
   --quiet          -q Do not output any message.
   --verbose        -v|vv|vvv Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
@@ -28,10 +24,8 @@ svn2git - the Subversion to Git migration tool. version 1.0.1
   --ansi              Force ANSI output.
   --no-ansi           Disable ANSI output.
   --no-interaction -n Do not ask any interactive question.
-```
 
-**Available commands**
-```
+Available commands:
   fetch-svn-authors   Command line tool to fetch author names from an SVN repository.
   help                Displays help for a command
   list                Lists commands
