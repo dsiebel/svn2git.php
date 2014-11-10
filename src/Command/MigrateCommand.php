@@ -125,7 +125,7 @@ class MigrateCommand extends Command {
         $this->name = basename($this->source);
         $this->log('NAME: ' . $this->name);
 
-        $this->gitsvn = $this->cwd . DIRECTORY_SEPARATOR . 'tmp-' . $this->name . '-bridge';
+        $this->gitsvn = $this->cwd . DIRECTORY_SEPARATOR . 'tmp/' . $this->name;
         mkdir($this->gitsvn, 0755, true);
         $this->log('TMP: ' . $this->gitsvn);
 
