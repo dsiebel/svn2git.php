@@ -6,7 +6,7 @@ use Svn2Git\Command\FetchSvnAuthorsCommand;
 use Svn2Git\Command\MigrateCommand;
 use Symfony\Component\Console\Application;
 
-$application = new Application('svn2git - the Subversion to Git migration tool.', '1.0.2');
+$application = new Application('svn2git - the Subversion to Git migration tool.', '1.0.3');
 
 $migrateCommand = new MigrateCommand();
 $fetchSvnAuthorsCmd = new FetchSvnAuthorsCommand();
