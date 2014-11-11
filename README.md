@@ -1,7 +1,7 @@
 ## svn2git
 Subversion to Git migration tool.
 
-Uses git-svn to clone a Subversion repository including all it's tags to Git.
+Uses git-svn to clone a Subversion repository including all its tags to Git.
 Optionally pushes everything to a remote repository.
 
 **Table of Contents**
