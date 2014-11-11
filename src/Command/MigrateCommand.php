@@ -233,7 +233,7 @@ class MigrateCommand extends Command {
             try {
                 $this->cli->execute($cmd, $path);
             } catch(\Exception $e) {
-                $this->error('Unable to create branch ' . $name . ': ' . $e->getMessage());
+                $this->error($e->getMessage());
             }
         }
     }
