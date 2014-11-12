@@ -35,6 +35,11 @@ class MigrateCommand extends Command {
     const OPT_AUTHORS_FILE = 'authors-file';
     const OPT_AUTHORS_FILE_S = 'A';
 
+    const OPT_PRESERVE_EMPTY = 'preserve-empty-dirs';
+    const OPT_PLACEHOLDER_FILE = 'placeholder-filename';
+
+    const PLACEHOLDER_FILE_DEFAULT = '.gitkeep';
+
     /**
      * @var InputInterface
      */
@@ -81,6 +86,16 @@ class MigrateCommand extends Command {
      * @var QuestionHelper
      */
     private $question;
+    /**
+     * Filename for placeholder file used to preserve empty subversion directories.
+     * @var string
+     */
+    private $placeholderFileName;
+    /**
+     * Whether to preserve empty directories retrieved from subversion.
+     * @var boolean
+     */
+    private $preserveEmpty;
 
     /**
      * @inheritdoc
@@ -108,6 +123,21 @@ class MigrateCommand extends Command {
             null,
             InputOption::VALUE_REQUIRED,
             'URL of Git remote repository to push to.'
+        );
+
+        $this->addOption(
+            self::OPT_PRESERVE_EMPTY,
+            null,
+            InputOption::VALUE_NONE,
+            'Create a placeholder file in the local Git repository for each empty directory fetched from Subversion.'
+        );
+
+        $this->addOption(
+            self::OPT_PLACEHOLDER_FILE,
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Set the name of placeholder files created by --preserve-empty-dirs.',
+            self::PLACEHOLDER_FILE_DEFAULT
         );
     }
 
@@ -146,6 +176,12 @@ class MigrateCommand extends Command {
         if ($input->hasOption(self::OPT_REMOTE)) {
             $this->remote = $input->getOption(self::OPT_REMOTE);
             $this->log('REMOTE: ' . $this->remote);
+        }
+
+        if ($input->hasOption(self::OPT_PRESERVE_EMPTY)) {
+            $this->preserveEmpty = $input->getOption(self::OPT_PRESERVE_EMPTY);
+            $this->placeholderFileName = $input->getOption(self::OPT_PLACEHOLDER_FILE);
+            $this->log('PRESERVE EMPTY DIRS WITH: ' . $this->placeholderFileName);
         }
 
         $this->log('==========================================================');
@@ -207,12 +243,30 @@ class MigrateCommand extends Command {
      * @param string|null $authorsFile Path to authors mapping file
      */
     private function cloneSubversionRepository($source, $destination, $authorsFile = null) {
-        $cmd = 'git svn clone '
-            . $source
-            . (isset($authorsFile) ? ' -A '.$authorsFile:'')
-            . ' --prefix=svn/'
-            . ' --stdlayout --quiet ' . $destination;
+
         $this->log('Cloning subversion repository...');
+
+        $cmdSeg = [
+            'git svn clone',
+            $source,
+            '--prefix=svn/',
+            '--stdlayout',
+            '--quiet'
+        ];
+
+        if (isset($authorsFile)) {
+            $cmdSeg[] = '-A ' . $authorsFile;
+        }
+
+        if ($this->preserveEmpty) {
+            $cmdSeg[] = '--preserve-empty-dirs';
+            $cmdSeg[] = '--placeholder-filename=' . $this->placeholderFileName;
+        }
+
+        // append destination to the end, always
+        $cmdSeg[] = $destination;
+
+        $cmd = implode(' ', $cmdSeg);
         $this->comment($cmd);
         $this->cli->passthru($cmd);
     }
