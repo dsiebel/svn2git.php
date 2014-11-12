@@ -152,45 +152,59 @@ class MigrateCommand extends Command {
         $this->question = $this->getHelper('question');
 
         $this->cwd = getcwd();
-        $this->log('BASEDIR: ' . $this->cwd);
 
         $this->cli = new Cli($this->cwd);
         $this->cli->setWorkingDir($this->cwd);
         $this->cli->setTrustExitCodes(true);
 
         $this->source = $input->getArgument(self::ARG_SRC);
-        $this->log('SOURCE: ' . $this->source);
 
         $this->name = basename($this->source);
-        $this->log('NAME: ' . $this->name);
 
         $this->gitsvn = $this->cwd . DIRECTORY_SEPARATOR . 'tmp/' . $this->name;
-        mkdir($this->gitsvn, 0755, true);
-        $this->log('TMP: ' . $this->gitsvn);
 
         if ($input->hasOption(self::OPT_AUTHORS_FILE)) {
             $this->authorsFile = $input->getOption(self::OPT_AUTHORS_FILE);
-            $this->log('AUTHORS-FILE: ' . $this->authorsFile);
         }
 
         if ($input->hasOption(self::OPT_REMOTE)) {
             $this->remote = $input->getOption(self::OPT_REMOTE);
-            $this->log('REMOTE: ' . $this->remote);
+
         }
 
         if ($input->hasOption(self::OPT_PRESERVE_EMPTY)) {
             $this->preserveEmpty = $input->getOption(self::OPT_PRESERVE_EMPTY);
             $this->placeholderFileName = $input->getOption(self::OPT_PLACEHOLDER_FILE);
-            $this->log('PRESERVE EMPTY DIRS WITH: ' . $this->placeholderFileName);
         }
-
-        $this->log('==========================================================');
     }
 
     /**
      * @inheritdoc
      */
     protected function execute(InputInterface $input, OutputInterface $output) {
+
+        $this->log('BASEDIR: ' . $this->cwd);
+        $this->log('SOURCE: ' . $this->source);
+        $this->log('NAME: ' . $this->name);
+
+        if (!file_exists($this->gitsvn)) {
+            mkdir($this->gitsvn, 0755, true);
+        }
+        $this->log('TMP: ' . $this->gitsvn);
+
+        if (isset($this->authorsFile)) {
+            $this->log('AUTHORS-FILE: ' . $this->authorsFile);
+        }
+
+        if (isset($this->remote)) {
+            $this->log('REMOTE: ' . $this->remote);
+        }
+
+        if ($this->preserveEmpty) {
+            $this->log('PRESERVE EMPTY DIRS WITH: ' . $this->placeholderFileName);
+        }
+
+        $this->log('==========================================================');
 
         if (!$this->isGitRepository($this->gitsvn)) {
             $this->cloneSubversionRepository(
