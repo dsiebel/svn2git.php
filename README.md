@@ -93,15 +93,17 @@ Capability to inject the layout might be added in the future.
 
 **Options**
 ```
-  --authors-file (-A)   Path to Subversion authors mapping.
-  --remote              URL of Git remote repository to push to.
-  --help (-h)           Display this help message.
-  --quiet (-q)          Do not output any message.
-  --verbose (-v|vv|vvv) Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
-  --version (-V)        Display this application version.
-  --ansi                Force ANSI output.
-  --no-ansi             Disable ANSI output.
-  --no-interaction (-n) Do not ask any interactive question.
+   --authors-file (-A)     Path to Subversion authors mapping.
+   --remote                URL of Git remote repository to push to.
+   --preserve-empty-dirs   Create a placeholder file in the local Git repository for each empty directory fetched from Subversion.
+   --placeholder-filename  Set the name of placeholder files created by --preserve-empty-dirs. (default: ".gitkeep")
+   --help (-h)             Display this help message.
+   --quiet (-q)            Do not output any message.
+   --verbose (-v|vv|vvv)   Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug.
+   --version (-V)          Display this application version.
+   --ansi                  Force ANSI output.
+   --no-ansi               Disable ANSI output.
+   --no-interaction (-n)   Do not ask any interactive question.
 ```
 
 **Example**
