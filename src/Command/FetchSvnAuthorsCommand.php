@@ -11,7 +11,6 @@
 namespace Svn2Git\Command;
 
 use Svn2Git\Cli\Cli;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -27,18 +26,6 @@ class FetchSvnAuthorsCommand extends Command {
 
     const OPT_OUTPUT = 'output';
 
-    /**
-     * @var InputInterface
-     */
-    private $input;
-    /**
-     * @var OutputInterface
-     */
-    private $output;
-    /**
-     * @var Cli
-     */
-    private $cli;
     /**
      * @var string
      */
@@ -75,32 +62,43 @@ class FetchSvnAuthorsCommand extends Command {
         );
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function initialize(InputInterface $input, OutputInterface $output) {
-        $this->input = $input;
-        $this->output = $output;
+        parent::initialize($input, $output);
         $this->cli = new Cli();
         $this->source = $this->input->getArgument(self::ARG_SRC);
         $this->file = $this->input->getOption(self::OPT_OUTPUT);
-        $this->quiet = OutputInterface::VERBOSITY_QUIET === $this->output->getVerbosity();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output) {
         $authors = $this->getSubversionAuthors($this->source, $this->quiet);
         $this->writeAuthorsFile($authors, $this->file);
     }
 
-    private function writeAuthorsFile($authors, $file) {
+    /**
+     * Writes a given list of authors into the file specified by $file.
+     * @param array $authors List of authors
+     * @param string $file Path of file to write to
+     */
+    private function writeAuthorsFile(array $authors, $file) {
         file_put_contents($file, implode("\n", $authors));
     }
 
-    private function getSubversionAuthors($url, $quiet) {
-        $cmd = 'svn log %s %s | awk -F \'|\' \'/^r/ {sub("^ ", "", $2); '.
-            'sub(" $", "", $2); print $2" = "$2" <"$2">"}\' | sort -u';
+    /**
+     * Returns the list of authors from the given subversion (remote) repository.
+     *
+     * @param string $url Subversion repository URL
+     * @return array
+     */
+    private function getSubversionAuthors($url) {
+        $cmd = 'svn log --quiet %s | awk -F \'|\' \'/^r/ {sub("^ ", "", $2); '
+            . 'sub(" $", "", $2); print $2" = "$2" <"$2">"}\' | sort -u';
 
-        return $this->cli->execute(sprintf(
-            $cmd,
-            $quiet ? ' --quiet' : '',
-            $url
-        ));
+        return $this->cli->execute(sprintf($cmd, $url));
     }
 }

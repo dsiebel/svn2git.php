@@ -11,17 +11,17 @@
 namespace Svn2Git\Command;
 
 
-use Svn2Git\Cli\Cli;
 use Svn2Git\Vcs\Branch;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class UpdateCommand extends Command {
 
     const ARG_GITSVN = 'gitsvn';
-    const ARG_BRANCHES = 'branches';
+
+    const OPT_BRANCHES = 'branches';
 
     /**
      * Path to git-svn repository.
@@ -29,39 +29,30 @@ class UpdateCommand extends Command {
      */
     private $gitsvn;
     /**
-     * List of branches to update
+     * List of branches to be updated.
      * @var Branch[]
      */
     private $branches;
-    /**
-     * @var InputInterface
-     */
-    private $input;
-    /**
-     * @var OutputInterface
-     */
-    private $output;
-    private $cwd;
-    private $cli;
 
     /**
      * @inheritdoc
      */
     protected function configure() {
         $this
-            ->setName('migrate')
+            ->setName('update')
             ->setDescription('Command line tool to migrate a Subversion repository to Git.');
 
         $this->addArgument(
             self::ARG_GITSVN,
             InputArgument::REQUIRED,
-            'Subversion repository to migrate.'
+            'Git-svn repository to be updated.'
         );
 
-        $this->addArgument(
-            self::ARG_BRANCHES,
-            InputArgument::IS_ARRAY & InputArgument::REQUIRED,
-            'Subversion branches to update.'
+        $this->addOption(
+            self::OPT_BRANCHES,
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            'Branches to be updated.'
         );
     }
 
@@ -69,66 +60,40 @@ class UpdateCommand extends Command {
      * @inheritdoc
      */
     protected function initialize(InputInterface $input, OutputInterface $output) {
-        $this->input = $input;
-        $this->output = $output;
-
-        $this->cwd = getcwd();
-        $this->log('BASEDIR: ' . $this->cwd);
-
-        $this->cli = new Cli($this->cwd);
-        $this->cli->setWorkingDir($this->cwd);
-        $this->cli->setTrustExitCodes(true);
+        parent::initialize($input, $output);
 
         $this->gitsvn = $input->getArgument(self::ARG_GITSVN);
+
         if (!$this->isGitRepository($this->gitsvn)) {
             throw new \InvalidArgumentException('Given gitsvn path is not a git repository (' . $this->gitsvn . ')');
         }
-        $this->log('GIT_SVN: ' . $this->gitsvn);
 
-        $this->branches = $input->getArgument(self::ARG_BRANCHES);
-        $this->log('BRANCHES: '. implode(', ', $this->branches));
+        $branchNames = $input->getOption(self::OPT_BRANCHES);
 
-        $this->log('==========================================================');
+        if (empty($branchNames)) {
+            $this->branches = $this->getSubversionBranches($this->gitsvn);
+        } else {
+            $this->branches = [];
+            foreach($branchNames as $branchName) {
+                $this->branches[] = new Branch($branchName);
+            }
+        }
     }
 
     /**
      * @inheritdoc
      */
     protected function execute(InputInterface $input, OutputInterface $output) {
+        $this->log('BASEDIR: ' . $this->cwd);
+        $this->log('GIT_SVN: ' . $this->gitsvn);
+        $this->log('==========================================================');
 
-    }
+        $this->updateBranches($this->branches, $this->gitsvn);
 
-    /**
-     * Helper method for writing <comment> logs.
-     * @param string $message
-     */
-    private function comment($message) {
-        $this->output->writeln(sprintf('<comment>%s</comment>', $message));
-    }
+        if ($this->hasRemote($this->gitsvn)) {
+            $this->push($this->gitsvn);
+        }
 
-    /**
-     * Helper method for writing <info> logs.
-     * @param string $message
-     */
-    private function log($message) {
-        $this->output->writeln(sprintf('<info>%s</info>', $message));
-    }
-
-    /**
-     * Helper method for writing <error> logs.
-     * @param string $message
-     */
-    private function error($message) {
-        $this->output->writeln(sprintf('<error>%s</error>', $message));
-    }
-
-    /**
-     * Checks if a path is a git repository.
-     * Checks if path is a directory containing a '.git' directory.
-     * @param string $path Path to check for git repository
-     * @return bool
-     */
-    private function isGitRepository($path) {
-        return is_dir($path) && is_dir($path . DIRECTORY_SEPARATOR . '.git');
+        $this->switchToBranch('master', $this->gitsvn);
     }
 }

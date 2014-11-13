@@ -4,13 +4,16 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Svn2Git\Command\FetchSvnAuthorsCommand;
 use Svn2Git\Command\MigrateCommand;
+use Svn2Git\Command\UpdateCommand;
 use Symfony\Component\Console\Application;
 
 $application = new Application('svn2git - the Subversion to Git migration tool.', '1.0.3');
 
-$migrateCommand = new MigrateCommand();
 $fetchSvnAuthorsCmd = new FetchSvnAuthorsCommand();
+$migrateCommand = new MigrateCommand();
+$updateCommand = new UpdateCommand();
 
 $application->add($fetchSvnAuthorsCmd);
 $application->add($migrateCommand);
+$application->add($updateCommand);
 $application->run();

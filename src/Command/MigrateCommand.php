@@ -10,10 +10,6 @@
 
 namespace Svn2Git\Command;
 
-use Svn2Git\Cli\Cli;
-use Svn2Git\Vcs\Branch;
-use Svn2Git\Vcs\Tag;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,14 +36,9 @@ class MigrateCommand extends Command {
 
     const PLACEHOLDER_FILE_DEFAULT = '.gitkeep';
 
-    /**
-     * @var InputInterface
-     */
-    private $input;
-    /**
-     * @var OutputInterface
-     */
-    private $output;
+    const OPT_BRANCHES = 'branches';
+    const OPT_TAGS = 'tags';
+
     /**
      * Source subversion repository.
      * @var string
@@ -64,11 +55,6 @@ class MigrateCommand extends Command {
      */
     private $gitsvn;
     /**
-     * Current working directory.
-     * @var string
-     */
-    private $cwd;
-    /**
      * Path to authors mapping file.
      * @var string
      */
@@ -78,10 +64,6 @@ class MigrateCommand extends Command {
      * @var string
      */
     private $remote;
-    /**
-     * @var Cli
-     */
-    private $cli;
     /**
      * @var QuestionHelper
      */
@@ -101,6 +83,8 @@ class MigrateCommand extends Command {
      * @inheritdoc
      */
     protected function configure() {
+        parent::configure();
+
         $this
             ->setName('migrate')
             ->setDescription('Command line tool to migrate a Subversion repository to Git.');
@@ -139,29 +123,36 @@ class MigrateCommand extends Command {
             'Set the name of placeholder files created by --preserve-empty-dirs.',
             self::PLACEHOLDER_FILE_DEFAULT
         );
+
+        $this->addOption(
+            self::OPT_BRANCHES,
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            'Branches to be migrated. Default: All branches will be migrated.'
+        );
+
+        $this->addOption(
+            self::OPT_TAGS,
+            null,
+            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
+            'Tags to be migrated. Default: All tags will be migrated.'
+        );
     }
 
     /**
      * @inheritdoc
      */
     protected function initialize(InputInterface $input, OutputInterface $output) {
-        $this->input = $input;
-        $this->output = $output;
+        parent::initialize($input, $output);
 
         /** @var $question QuestionHelper */
         $this->question = $this->getHelper('question');
-
-        $this->cwd = getcwd();
-
-        $this->cli = new Cli($this->cwd);
-        $this->cli->setWorkingDir($this->cwd);
-        $this->cli->setTrustExitCodes(true);
 
         $this->source = $input->getArgument(self::ARG_SRC);
 
         $this->name = basename($this->source);
 
-        $this->gitsvn = $this->cwd . DIRECTORY_SEPARATOR . 'tmp/' . $this->name;
+        $this->gitsvn = $this->cwd . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . $this->name;
 
         if ($input->hasOption(self::OPT_AUTHORS_FILE)) {
             $this->authorsFile = $input->getOption(self::OPT_AUTHORS_FILE);
@@ -169,7 +160,6 @@ class MigrateCommand extends Command {
 
         if ($input->hasOption(self::OPT_REMOTE)) {
             $this->remote = $input->getOption(self::OPT_REMOTE);
-
         }
 
         if ($input->hasOption(self::OPT_PRESERVE_EMPTY)) {
@@ -214,40 +204,36 @@ class MigrateCommand extends Command {
             );
         } else {
             $this->log('Existing git repository found: ' . $this->gitsvn);
-            $this->fetchSubversionRepository($this->gitsvn);
-            $this->updateSubversionRepository($this->gitsvn);
+            $this->fetchFromSubversion($this->gitsvn);
+            $this->rebaseFromSubversion($this->gitsvn);
         }
 
         $createBranchesQ = new ConfirmationQuestion('Migrate branches? ', true);
 
         if ($this->question->ask($input, $output, $createBranchesQ)) {
             $branches = $this->getSubversionBranches($this->gitsvn);
-            $this->createGitBranches($branches, $this->gitsvn);
+            $this->createBranches($branches, $this->gitsvn);
         }
 
         $createTagsQ = new ConfirmationQuestion('Migrate tags? ', true);
 
         if ($this->question->ask($input, $output, $createTagsQ)) {
             $tags = $this->getSubversionTags($this->gitsvn);
-            $this->createGitAnnotatedTags($tags, $this->gitsvn);
+            $this->createAnnotatedTags($tags, $this->gitsvn);
         }
 
         if (isset($this->remote)) {
-            $this->addGitRemote($this->remote, $this->gitsvn);
-            $this->pushToGit($this->gitsvn);
-        }
-        // cleanup
-        $this->gitCheckout('master', $this->gitsvn);
-    }
 
-    /**
-     * Checks if a path is a git repository.
-     * Checks if path is a directory containing a '.git' directory.
-     * @param string $path Path to check for git repository
-     * @return bool
-     */
-    private function isGitRepository($path) {
-        return is_dir($path) && is_dir($path . DIRECTORY_SEPARATOR . '.git');
+            $this->addRemote($this->remote, $this->gitsvn);
+            $pushRemoteQ = new ConfirmationQuestion('Push to remote? ', true);
+
+            if ($this->question->ask($input, $output, $pushRemoteQ)) {
+                $this->push($this->gitsvn);
+            }
+        }
+
+        // cleanup
+        $this->switchToBranch('master', $this->gitsvn);
     }
 
     /**
@@ -283,174 +269,5 @@ class MigrateCommand extends Command {
         $cmd = implode(' ', $cmdSeg);
         $this->comment($cmd);
         $this->cli->passthru($cmd);
-    }
-
-    /**
-     * Creates git branches from the list of given branch configurations.
-     * @param Branch[] $branches
-     * @param string $path Path to lcal repository
-     */
-    private function createGitBranches(array $branches, $path) {
-        foreach($branches as $branch) {
-            /** @var $branch Branch */
-            $name = $branch->getName();
-            $cmd = sprintf('git checkout -b %s svn/%s', $name, $name);
-            $this->log('Creating branch ' . $name);
-            $this->comment($cmd);
-            try {
-                $this->cli->execute($cmd, $path);
-            } catch(\Exception $e) {
-                $this->error($e->getMessage());
-            }
-        }
-    }
-
-    /**
-     * Creates annotated git tags from the given list of tag configurations.
-     * @param Tag[] $tags List of tags to be created
-     * @param string $path Path to local repository
-     */
-    private function createGitAnnotatedTags(array $tags, $path) {
-        foreach($tags as $tag) {
-            /** @var $tag Tag */
-            $name = $tag->getName();
-            $msg = $tag->getMessage();
-            $cmd = sprintf("git tag -am '%s' %s remotes/svn/tags/%s", $msg, $name, $name);
-            $this->log('Creating tag ' . $name);
-            $this->comment($cmd);
-            try {
-                $this->cli->execute($cmd, $path);
-            } catch(\Exception $e) {
-                $this->error($e->getMessage());
-            }
-        }
-    }
-
-    /**
-     * Fetches from subversion.
-     * @param string $path Path to local repository
-     */
-    private function fetchSubversionRepository($path) {
-        $cmd = 'git svn fetch';
-        $this->comment($cmd);
-        $this->cli->passthru($cmd, $path);
-    }
-
-    /**
-     * Updates to the latest revision of remote subversion repository.
-     * @param string $path Path to local repository
-     */
-    private function updateSubversionRepository($path) {
-        $cmd = 'git svn rebase';
-        $this->comment($cmd);
-        $this->cli->passthru($cmd, $path);
-    }
-
-    private function addGitRemote($url, $path) {
-        $cmd = 'git remote add origin ' . $url;
-        $this->log('Creating git remote');
-        $this->comment($cmd);
-        try {
-            $this->cli->execute($cmd, $path);
-        } catch(\Exception $e) {
-            $this->error($e->getMessage());
-        }
-    }
-
-    /**
-     * Pushes to remote git repository.
-     * @param string $path Path to local repository
-     */
-    private function pushToGit($path) {
-        $this->log('Pushing to remote git repository');
-        $cmd = 'git push origin --all';
-        $this->comment($cmd);
-        $this->cli->passthru($cmd, $path);
-        $cmd = 'git push origin --tags';
-        $this->comment($cmd);
-        $this->cli->passthru($cmd, $path);
-    }
-
-    /**
-     * Retrieves a list of branch configurations from a local git-svn bridge.
-     * @param string $path Path to git-svn bridge
-     * @return Branch[]
-     */
-    private function getSubversionBranches($path) {
-        $branches = [];
-        // [1] => branch name, [2] => revision, [3] => commit message ( if exists )
-        $pattern = '(^\s*svn/(\S+)\s+([a-z0-9]+)(.*))';
-        $cmd = 'git branch -rv | grep -v \'tags\'';
-        $lines = $this->cli->execute($cmd, $path);
-
-        foreach ($lines as $line) {
-            $matches = [];
-
-            if (!preg_match($pattern, $line, $matches)) {
-                continue;
-            }
-
-            $branches[] = new Branch($matches[1], isset($matches[3]) ? trim($matches[3]) : '', $matches[2]);
-        }
-        return $branches;
-    }
-
-    /**
-     * Retrieves a list of tag configurations from a local git-svn bridge.
-     * @param string $path Path to git-svn bridge
-     * @return Tag[]
-     */
-    private function getSubversionTags($path) {
-        $tags = [];
-        // [1] => tag ref, [2] => revision, [3] => commit message ( if exists )
-        $pattern = '(^\s*svn/tags/(\S+)\s+([a-z0-9]+)(.*))';
-        $cmd = 'git branch -rv | grep \'tags\'';
-        $lines = $this->cli->execute($cmd, $path);
-
-        foreach($lines as $line) {
-            $matches = [];
-
-            if (!preg_match($pattern, $line, $matches)) {
-                continue;
-            }
-
-            $tags[] = new Tag($matches[1], isset($matches[3]) ? trim($matches[3]) : '', $matches[2]);
-        }
-        return $tags;
-    }
-
-    /**
-     * Performs a simple git checkout $branch.
-     * @param $branch
-     * @param $path
-     */
-    private function gitCheckout($branch, $path) {
-        $cmd = 'git checkout ' . $branch;
-        $this->comment($cmd);
-        $this->cli->execute($cmd, $path);
-    }
-
-    /**
-     * Helper method for writing <comment> logs.
-     * @param string $message
-     */
-    private function comment($message) {
-        $this->output->writeln(sprintf('<comment>%s</comment>', $message));
-    }
-
-    /**
-     * Helper method for writing <info> logs.
-     * @param string $message
-     */
-    private function log($message) {
-        $this->output->writeln(sprintf('<info>%s</info>', $message));
-    }
-
-    /**
-     * Helper method for writing <error> logs.
-     * @param string $message
-     */
-    private function error($message) {
-        $this->output->writeln(sprintf('<error>%s</error>', $message));
     }
 }
