@@ -36,9 +36,6 @@ class MigrateCommand extends Command {
 
     const PLACEHOLDER_FILE_DEFAULT = '.gitkeep';
 
-    const OPT_BRANCHES = 'branches';
-    const OPT_TAGS = 'tags';
-
     /**
      * Source subversion repository.
      * @var string
@@ -122,20 +119,6 @@ class MigrateCommand extends Command {
             InputOption::VALUE_REQUIRED,
             'Set the name of placeholder files created by --preserve-empty-dirs.',
             self::PLACEHOLDER_FILE_DEFAULT
-        );
-
-        $this->addOption(
-            self::OPT_BRANCHES,
-            null,
-            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-            'Branches to be migrated. Default: All branches will be migrated.'
-        );
-
-        $this->addOption(
-            self::OPT_TAGS,
-            null,
-            InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-            'Tags to be migrated. Default: All tags will be migrated.'
         );
     }
 
