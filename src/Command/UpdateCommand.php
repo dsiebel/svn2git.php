@@ -40,7 +40,7 @@ class UpdateCommand extends Command {
     protected function configure() {
         $this
             ->setName('update')
-            ->setDescription('Command line tool to migrate a Subversion repository to Git.');
+            ->setDescription('Command line tool to update an existing git-svn bridge repository.');
 
         $this->addArgument(
             self::ARG_GITSVN,
