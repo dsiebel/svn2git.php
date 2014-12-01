@@ -70,7 +70,7 @@ Available commands:
 
 **Example**
 ```bash
-$ bin/svn2git fetch-svn-authors svn://example.com/svnrepo --output authors-tranform.txt
+$ bin/svn2git fetch-svn-authors svn://example.com/svnrepo --output authors-transform.txt
 ```
 
 Edit the output file if you want to make adjustments to the layout. Default layout is:
