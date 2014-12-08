@@ -48,8 +48,8 @@ Available commands:
 ### Get subversion authors mapping
 
 **Usage**
-```
-  bin/svn2git fetch-svn-authors [--output="..."] source
+```bash
+$ bin/svn2git fetch-svn-authors [--output="..."] source
 ```
 **Arguments**
 ```
@@ -84,7 +84,7 @@ Capability to inject the layout might be added in the future.
 
 **Usage**
 ```bash
-  bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] source
+$ bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] source
 ```
 
 **Arguments**
@@ -122,7 +122,7 @@ A dedicated update command might be added in the future.
 
 **Usage**
 ```bash
-  update [--branches="..."] gitsvn
+$ bin/svn2git update [--branches="..."] gitsvn
 ```
 
 **Arguments**
