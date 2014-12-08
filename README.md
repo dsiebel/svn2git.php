@@ -14,6 +14,8 @@ Optionally pushes everything to a remote repository.
 
 ### Getting Started
 
+**Important**: The [standard layout for subversion repositories](http://blogs.collab.net/subversion/subversion_repo) is required. If you use a different layout for your subversion repository, please adjust it first to the standard layout and then use this tool to migrate to Git.
+
 #### Install Dependencies
 ```composer install```
 
