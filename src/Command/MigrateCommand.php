@@ -28,6 +28,18 @@ class MigrateCommand extends Command {
 
     const OPT_REMOTE = 'remote';
 
+    const OPT_STDLAYOUT = 'stdlayout';
+    const OPT_STDLAYOUT_S = 's';
+
+    const OPT_TRUNK = 'trunk';
+    const OPT_TRUNK_S = 'T';
+
+    const OPT_BRANCHES = 'branches';
+    const OPT_BRANCHES_S = 'b';
+
+    const OPT_TAGS = 'tags';
+    const OPT_TAGS_S = 't';
+
     const OPT_AUTHORS_FILE = 'authors-file';
     const OPT_AUTHORS_FILE_S = 'A';
 
@@ -52,6 +64,10 @@ class MigrateCommand extends Command {
      */
     private $gitsvn;
     /**
+     * @var QuestionHelper
+     */
+    private $question;
+    /**
      * Path to authors mapping file.
      * @var string
      */
@@ -61,20 +77,36 @@ class MigrateCommand extends Command {
      * @var string
      */
     private $remote;
+
     /**
-     * @var QuestionHelper
+     * @var boolean
      */
-    private $question;
+    private $stdlayout;
     /**
-     * Filename for placeholder file used to preserve empty subversion directories.
+     * Relative repository path or full url pointing to the trunk of the repository.
      * @var string
      */
-    private $placeholderFileName;
+    private $trunk;
+    /**
+     * Relative repository path or full url pointing to the branches of the repository.
+     * @var string
+     */
+    private $branches;
+    /**
+     * Relative repository path or full url pointing to the tags of the repository.
+     * @var string
+     */
+    private $tags;
     /**
      * Whether to preserve empty directories retrieved from subversion.
      * @var boolean
      */
     private $preserveEmpty;
+    /**
+     * Filename for placeholder file used to preserve empty subversion directories.
+     * @var string
+     */
+    private $placeholderFileName;
 
     /**
      * @inheritdoc
@@ -104,6 +136,46 @@ class MigrateCommand extends Command {
             null,
             InputOption::VALUE_REQUIRED,
             'URL of Git remote repository to push to.'
+        );
+
+        $this->addOption(
+            self::OPT_STDLAYOUT,
+            self::OPT_STDLAYOUT_S,
+            InputOption::VALUE_NONE,
+            <<<DESC
+The option --stdlayout is a shorthand way of setting trunk,tags,branches as the relative paths, which is the Subversion default.
+If any of the other options are given as well, they take precedence.
+DESC
+        );
+
+        $this->addOption(
+            self::OPT_TRUNK,
+            self::OPT_TRUNK_S,
+            InputOption::VALUE_REQUIRED,
+            <<<DESC
+Relative repository path or full url pointing to the trunk of the repository.
+Takes precedence over the --stdlayout option.
+DESC
+        );
+
+        $this->addOption(
+            self::OPT_BRANCHES,
+            self::OPT_BRANCHES_S,
+            InputOption::VALUE_REQUIRED,
+            <<<DESC
+Relative repository path or full url pointing to the branches of the repository.
+Takes precedence over the --stdlayout option.
+DESC
+        );
+
+        $this->addOption(
+            self::OPT_TAGS,
+            self::OPT_TAGS_S,
+            InputOption::VALUE_REQUIRED,
+            <<<DESC
+Relative repository path or full url pointing to the tags of the repository.
+Takes precedence over the --stdlayout option.
+DESC
         );
 
         $this->addOption(
@@ -145,6 +217,22 @@ class MigrateCommand extends Command {
             $this->remote = $input->getOption(self::OPT_REMOTE);
         }
 
+        if ($input->hasOption(self::OPT_STDLAYOUT)) {
+            $this->stdlayout = $input->getOption(self::OPT_STDLAYOUT);
+        }
+
+        if ($input->hasOption(self::OPT_TRUNK)) {
+            $this->trunk = $input->getOption(self::OPT_TRUNK);
+        }
+
+        if ($input->hasOption(self::OPT_BRANCHES)) {
+            $this->branches = $input->getOption(self::OPT_BRANCHES);
+        }
+
+        if ($input->hasOption(self::OPT_TAGS)) {
+            $this->tags = $input->getOption(self::OPT_TAGS);
+        }
+
         if ($input->hasOption(self::OPT_PRESERVE_EMPTY)) {
             $this->preserveEmpty = $input->getOption(self::OPT_PRESERVE_EMPTY);
             $this->placeholderFileName = $input->getOption(self::OPT_PLACEHOLDER_FILE);
@@ -171,6 +259,10 @@ class MigrateCommand extends Command {
 
         if (isset($this->remote)) {
             $this->log('REMOTE: ' . $this->remote);
+        }
+
+        if ($this->stdlayout) {
+            $this->log('USING STANDARD LAYOUT');
         }
 
         if ($this->preserveEmpty) {
@@ -233,12 +325,27 @@ class MigrateCommand extends Command {
             'git svn clone',
             $source,
             '--prefix=svn/',
-            '--stdlayout',
             '--quiet'
         ];
 
         if (isset($authorsFile)) {
             $cmdSeg[] = '-A ' . $authorsFile;
+        }
+
+        if (!empty($this->trunk)) {
+            $cmdSeg[] = '--trunk=' . $this->trunk;
+        }
+
+        if (!empty($this->branches)) {
+            $cmdSeg[] = '--branches=' . $this->branches;
+        }
+
+        if (!empty($this->tags)) {
+            $cmdSeg[] = '--tags=' . $this->tags;
+        }
+
+        if ($this->stdlayout) {
+            $cmdSeg[] = '--stdlayout';
         }
 
         if ($this->preserveEmpty) {
