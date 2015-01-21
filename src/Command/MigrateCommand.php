@@ -286,15 +286,23 @@ DESC
         $createBranchesQ = new ConfirmationQuestion('Migrate branches? ', true);
 
         if ($this->question->ask($input, $output, $createBranchesQ)) {
-            $branches = $this->getSubversionBranches($this->gitsvn);
-            $this->createBranches($branches, $this->gitsvn);
+            try {
+                $branches = $this->getSubversionBranches($this->gitsvn);
+                $this->createBranches($branches, $this->gitsvn);
+            } catch(\RuntimeException $e) {
+                $this->comment('Unable to migrate branches. Does the repository even have any?: ' . $e->getMessage());
+            }
         }
 
         $createTagsQ = new ConfirmationQuestion('Migrate tags? ', true);
 
         if ($this->question->ask($input, $output, $createTagsQ)) {
-            $tags = $this->getSubversionTags($this->gitsvn);
-            $this->createAnnotatedTags($tags, $this->gitsvn);
+            try {
+                $tags = $this->getSubversionTags($this->gitsvn);
+                $this->createAnnotatedTags($tags, $this->gitsvn);
+            } catch(\RuntimeException $e) {
+                $this->comment('Unable to migrate tags. Does the repository even have any?: ' . $e->getMessage());
+            }
         }
 
         if (isset($this->remote)) {
