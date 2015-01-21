@@ -14,7 +14,13 @@ Optionally pushes everything to a remote repository.
 
 ### Getting Started
 
-**Important**: The [standard layout for subversion repositories](http://blogs.collab.net/subversion/subversion_repo) is required. If you use a different layout for your subversion repository, please adjust it first to the standard layout and then use this tool to migrate to Git.
+**Important**: since version 2.1.0 ```svn2git migrate``` does not asume
+[standard layout for subversion repositories](http://blogs.collab.net/subversion/subversion_repo) anymore.
+To migrate a subversion repository with standard layout you can use the same options as available on ```git svn clone```:
+```bash
+$ bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] [-s|--stdlayout] [-T|--trunk="..."] [-b|--branches="..."] [-t|--tags="..."] [--preserve-empty-dirs] [--placeholder-filename="..."] source
+```
+Check the migrate command help or the git svn man pages for more information.
 
 #### Install Dependencies
 ```composer install```
