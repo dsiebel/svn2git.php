@@ -74,7 +74,7 @@ class Cli {
         }
 
         if ($this->trustExitCodes && $return != 0) {
-            throw new \RuntimeException("Unable to execute '$cmd':" . implode("\n", $output), $return);
+            throw new \RuntimeException("Error executing `$cmd` (returned $return): " . implode("\n", $output), $return);
         }
 
         return $output;
@@ -100,7 +100,7 @@ class Cli {
         }
 
         if ($this->trustExitCodes && $return != 0) {
-            throw new \RuntimeException("Unable to execute '$cmd'");
+            throw new \RuntimeException("Error executing `$cmd` (returned $return)");
         }
     }
 }

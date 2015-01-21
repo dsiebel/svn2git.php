@@ -98,6 +98,14 @@ $ bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] source
 ```
   --authors-file (-A)     Path to Subversion authors mapping.
   --remote                URL of Git remote repository to push to.
+  --stdlayout (-s)        The option --stdlayout is a shorthand way of setting trunk,tags,branches as the relative paths, which is the Subversion default.
+                          If any of the other options are given as well, they take precedence.
+  --trunk (-T)           Relative repository path or full url pointing to the trunk of the repository.
+                          Takes precedence over the --stdlayout option.
+  --branches (-b)        Relative repository path or full url pointing to the branches of the repository.
+                          Takes precedence over the --stdlayout option.
+  --tags (-t)            Relative repository path or full url pointing to the tags of the repository.
+                          Takes precedence over the --stdlayout option.
   --preserve-empty-dirs   Create a placeholder file in the local Git repository for each empty directory fetched from Subversion.
   --placeholder-filename  Set the name of placeholder files created by --preserve-empty-dirs. (default: ".gitkeep")
   --help (-h)             Display this help message.
@@ -111,7 +119,7 @@ $ bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] source
 
 **Example**
 ```bash
-$ bin/svn2git migrate svn://example.com/svnrepo -A authors-transform.txt --remote=git@github.com:user/remoterepo.git
+$ bin/svn2git migrate svn://example.com/svnrepo -A authors-transform.txt --remote=git@github.com:user/remoterepo.git --stdlayout
 ```
 
 To update the master or any added branch / tag just execute the migrate command again.
