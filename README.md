@@ -23,7 +23,11 @@ $ bin/svn2git migrate [-A|--authors-file="..."] [--remote="..."] [-s|--stdlayout
 Check the migrate command help or the git svn man pages for more information.
 
 #### Install Dependencies
-```composer install```
+```
+git
+git-svn
+composer install
+```
 
 #### Get help
 ```bash
